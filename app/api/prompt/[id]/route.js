@@ -3,17 +3,19 @@ import { connectToDB } from "@utils/database";
 
 export const GET = async (request, { params }) => {
     try {
-        await connectToDB()
+        await connectToDB();
 
-        const prompt = await Prompt.findById(params.id).populate("creator")
-        if (!prompt) return new Response("Prompt Not Found", { status: 404 });
+        // Fetch the prompt by ID and populate the creator field
+        const prompt = await Prompt.findById(params.id).populate("creator");
+        if (!prompt) {
+            return new Response("Prompt Not Found", { status: 404 });
+        }
 
-        return new Response(JSON.stringify(prompt), { status: 200 })
-
+        return new Response(JSON.stringify(prompt), { status: 200 });
     } catch (error) {
         return new Response("Internal Server Error", { status: 500 });
     }
-}
+};
 
 export const PATCH = async (request, { params }) => {
     const { prompt, tag } = await request.json();
@@ -23,7 +25,6 @@ export const PATCH = async (request, { params }) => {
 
         // Find the existing prompt by ID
         const existingPrompt = await Prompt.findById(params.id);
-
         if (!existingPrompt) {
             return new Response("Prompt not found", { status: 404 });
         }
@@ -34,7 +35,7 @@ export const PATCH = async (request, { params }) => {
 
         await existingPrompt.save();
 
-        return new Response("Successfully updated the Prompts", { status: 200 });
+        return new Response("Successfully updated the Prompt", { status: 200 });
     } catch (error) {
         return new Response("Error Updating Prompt", { status: 500 });
     }
@@ -45,7 +46,10 @@ export const DELETE = async (request, { params }) => {
         await connectToDB();
 
         // Find the prompt by ID and remove it
-        await Prompt.findByIdAndRemove(params.id);
+        const deletedPrompt = await Prompt.findByIdAndRemove(params.id);
+        if (!deletedPrompt) {
+            return new Response("Prompt not found", { status: 404 });
+        }
 
         return new Response("Prompt deleted successfully", { status: 200 });
     } catch (error) {
